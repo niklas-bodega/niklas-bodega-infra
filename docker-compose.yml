@@ -1,137 +1,142 @@
 services:
 
-  #User Database Container
+  # User Service Database
   db-user:
     image: mysql:8.0
-    container_name: bodega_db_user
+    container_name: db_user
     environment:
-      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
-      MYSQL_DATABASE: ${DATABASE_NAME_USER}
-      MYSQL_USER: ${DATABASE_USERNAME}
-      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_USER_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3308:3306"
     volumes:
-      - bodega_db_user_data:/var/lib/mysql
-      - ./init-database-user.sql:/docker-entrypoint-initdb.d/init-database-user.sql
+      - db_user_data:/var/lib/mysql
+      - ./init-database-user.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - bodega_network
+      - bodega
 
-  #Booking Database Container
+  # Booking Service Database
   db-booking:
     image: mysql:8.0
-    container_name: bodega_db_booking
+    container_name: db_booking
     environment:
-      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
-      MYSQL_DATABASE: ${DATABASE_NAME_BOOKING}
-      MYSQL_USER: ${DATABASE_USERNAME}
-      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_BOOKING_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3309:3306"
     volumes:
-      - bodega_db_booking_data:/var/lib/mysql
-      - ./init-database-booking.sql:/docker-entrypoint-initdb.d/init-database-booking.sql
+      - db_booking_data:/var/lib/mysql
+      - ./init-database-booking.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - bodega_network
+      - bodega
 
-
-  #Review Database Container
+  # Review Service Database
   db-review:
     image: mysql:8.0
-    container_name: bodega_db_review
+    container_name: db_review
     environment:
-      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
-      MYSQL_DATABASE: ${DATABASE_NAME_REVIEW}
-      MYSQL_USER: ${DATABASE_USERNAME}
-      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_REVIEW_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3310:3306"
     volumes:
-      - bodega_db_review_data:/var/lib/mysql
-      - ./init-database-review.sql:/docker-entrypoint-initdb.d/init-database-review.sql
+      - db_review_data:/var/lib/mysql
+      - ./init-database-review.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - bodega_network
+      - bodega
 
+  # User Microservice
   user-service:
     build:
       context: ../user
+      dockerfile: Dockerfile
     container_name: user_service
     ports:
       - "8084:8084"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db-user:3308/${DATABASE_NAME_USER}?allowPublicKeyRetrieval=true&useSSL=false
-      - SPRING_DATASOURCE_USERNAME=${DATABASE_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - SPRING_JPA_SHOW_SQL=false
-      - APP_JWT_SECRET=${JWT_SECRET}
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-user:3306/${DB_USER_NAME}?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+      APP_JWT_SECRET: ${JWT_SECRET}
     depends_on:
       db-user:
         condition: service_healthy
     networks:
-      - bodega_network
+      - bodega
+    restart: unless-stopped
 
+  # Booking Microservice
   booking-service:
     build:
       context: ../booking
+      dockerfile: Dockerfile
     container_name: booking_service
     ports:
       - "8083:8083"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db-booking:3309/${DATABASE_NAME_BOOKING}?allowPublicKeyRetrieval=true&useSSL=false
-      - SPRING_DATASOURCE_USERNAME=${DATABASE_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - SPRING_JPA_SHOW_SQL=false
-      - APP_JWT_SECRET=${JWT_SECRET}
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-booking:3306/${DB_BOOKING_NAME}?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+      APP_JWT_SECRET: ${JWT_SECRET}
     depends_on:
       db-booking:
         condition: service_healthy
     networks:
-      - bodega_network
+      - bodega
+    restart: unless-stopped
 
+  # Review Microservice
   review-service:
     build:
       context: ../review-service
+      dockerfile: Dockerfile
     container_name: review_service
     ports:
       - "8086:8086"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db-review:3310/${DATABASE_NAME_REVIEW}?allowPublicKeyRetrieval=true&useSSL=false
-      - SPRING_DATASOURCE_USERNAME=${DATABASE_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - SPRING_JPA_SHOW_SQL=false
-      - APP_JWT_SECRET=${JWT_SECRET}
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-review:3306/${DB_REVIEW_NAME}?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+      APP_JWT_SECRET: ${JWT_SECRET}
     depends_on:
       db-review:
         condition: service_healthy
     networks:
-      - bodega_network
-
+      - bodega
+    restart: unless-stopped
 
 volumes:
-  bodega_db_user_data:
-  bodega_db_booking_data:
-  bodega_db_review_data:
+  db_user_data:
+  db_booking_data:
+  db_review_data:
 
 networks:
-  bodega_network:
+  bodega:
     driver: bridge
-
-
