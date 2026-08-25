@@ -1,17 +1,19 @@
 services:
-  db:
+
+  #User Database Container
+  db-user:
     image: mysql:8.0
-    container_name: bodega_db_local
+    container_name: bodega_db_user
     environment:
       MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
       MYSQL_DATABASE: ${DATABASE_NAME_USER}
       MYSQL_USER: ${DATABASE_USERNAME}
       MYSQL_PASSWORD: ${DATABASE_PASSWORD}
     ports:
-      - "3306:3306"
+      - "3308:3306"
     volumes:
-      - bodega_db_data:/var/lib/mysql
-      - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+      - bodega_db_user_data:/var/lib/mysql
+      - ./init-database-user.sql:/docker-entrypoint-initdb.d/init-database-user.sql
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 5s
@@ -20,21 +22,85 @@ services:
     networks:
       - bodega_network
 
-  booking-service:
-    build:
-      context: ../booking
-    container_name: booking_service_local
-    ports:
-      - "8083:8083"
+  #Booking Database Container
+  db-booking:
+    image: mysql:8.0
+    container_name: bodega_db_booking
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/${DATABASE_NAME_BOOKING}?allowPublicKeyRetrieval=true&useSSL=false
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_DATABASE: ${DATABASE_NAME_BOOKING}
+      MYSQL_USER: ${DATABASE_USERNAME}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - "3309:3306"
+    volumes:
+      - bodega_db_booking_data:/var/lib/mysql
+      - ./init-database-booking.sql:/docker-entrypoint-initdb.d/init-database-booking.sql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bodega_network
+
+
+  #Review Database Container
+  db-review:
+    image: mysql:8.0
+    container_name: bodega_db_review
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_DATABASE: ${DATABASE_NAME_REVIEW}
+      MYSQL_USER: ${DATABASE_USERNAME}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - "3310:3306"
+    volumes:
+      - bodega_db_review_data:/var/lib/mysql
+      - ./init-database-review.sql:/docker-entrypoint-initdb.d/init-database-review.sql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bodega_network
+
+  user-service:
+    build:
+      context: ../user
+    container_name: user_service
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-user:3308/${DATABASE_NAME_USER}?allowPublicKeyRetrieval=true&useSSL=false
       - SPRING_DATASOURCE_USERNAME=${DATABASE_USERNAME}
       - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_JPA_SHOW_SQL=false
       - APP_JWT_SECRET=${JWT_SECRET}
     depends_on:
-      db:
+      db-user:
+        condition: service_healthy
+    networks:
+      - bodega_network
+
+  booking-service:
+    build:
+      context: ../booking
+    container_name: booking_service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-booking:3309/${DATABASE_NAME_BOOKING}?allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=${DATABASE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=false
+      - APP_JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      db-booking:
         condition: service_healthy
     networks:
       - bodega_network
@@ -42,57 +108,30 @@ services:
   review-service:
     build:
       context: ../review-service
-    container_name: review_service_local
+    container_name: review_service
     ports:
       - "8086:8086"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/${DATABASE_NAME_REVIEW}?allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-review:3310/${DATABASE_NAME_REVIEW}?allowPublicKeyRetrieval=true&useSSL=false
       - SPRING_DATASOURCE_USERNAME=${DATABASE_USERNAME}
       - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_JPA_SHOW_SQL=false
       - APP_JWT_SECRET=${JWT_SECRET}
     depends_on:
-      db:
+      db-review:
         condition: service_healthy
     networks:
       - bodega_network
 
-  user-service:
-    build:
-      context: ../user
-    container_name: user_service_local
-    ports:
-      - "8084:8084"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/${DATABASE_NAME_USER}?allowPublicKeyRetrieval=true&useSSL=false
-      - SPRING_DATASOURCE_USERNAME=${DATABASE_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - SPRING_JPA_SHOW_SQL=false
-      - APP_JWT_SECRET=${JWT_SECRET}
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - bodega_network
-
-  frontend:
-    build:
-      context: ../frontend
-    container_name: frontend_local
-    ports:
-      - "80:80"
-    depends_on:
-      - booking-service
-      - review-service
-      - user-service
-    networks:
-      - bodega_network
 
 volumes:
-  bodega_db_data:
+  bodega_db_user_data:
+  bodega_db_booking_data:
+  bodega_db_review_data:
 
 networks:
   bodega_network:
     driver: bridge
+
+

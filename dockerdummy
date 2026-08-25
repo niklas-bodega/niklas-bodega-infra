@@ -1,0 +1,16 @@
+
+
+
+
+  frontend:
+    build:
+      context: ../frontend
+    container_name: frontend_local
+    ports:
+      - "80:80"
+    depends_on:
+      - booking-service
+      - review-service
+      - user-service
+    networks:
+      - bodega_network
