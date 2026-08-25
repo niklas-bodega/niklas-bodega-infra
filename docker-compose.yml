@@ -132,6 +132,18 @@ services:
       - bodega
     restart: unless-stopped
 
+  # Frontend
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "8080:80"
+    networks:
+      - bodega
+    restart: unless-stopped
+
 volumes:
   db_user_data:
   db_booking_data:
