@@ -7,9 +7,11 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+#Secrets
 .env
 .env.*
 !.env.example
+k8s/db-review/secret.yaml
 
 node_modules
 dist
