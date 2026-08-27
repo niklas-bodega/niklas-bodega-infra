@@ -84,6 +84,7 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "false"
       APP_JWT_SECRET: ${JWT_SECRET}
+      BOOKING_URL: ${BOOKING_INTERNAL_ADDRESS}
     depends_on:
       db-user:
         condition: service_healthy
@@ -142,7 +143,12 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      - "8080:80"
+      - "80:80"
+    environment:
+      API_USER_SERVICE: ${VITE_USER_API_URL}
+      API_BOOKING_SERVICE: ${VITE_BOOKING_API_URL}
+      API_REVIEW_SERVICE: ${VITE_REVIEW_API_URL}
+
     depends_on:
       - user-service
       - booking-service
