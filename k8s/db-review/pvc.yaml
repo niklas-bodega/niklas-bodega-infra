@@ -1,0 +1,17 @@
+apiVersion: v1
+
+# PVC gör så att våran att requestar en bit av lagringsutrrymet.
+kind: PersistentVolumeClaim
+
+# Namnet som används som referens i databasens volume.
+metadata:
+  name: db-review-pvc
+spec:
+
+  #ReadWriteOnce gör så att bara en annan pod kan använda denna databas.
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    #Anger hur mycket minne vi vill ha, nu ber den om minst 1 Gb.
+      requests:
+        storage: 1Gi
