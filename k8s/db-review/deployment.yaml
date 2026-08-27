@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+#Deployment betyder att den ska ha x antal (replicas) av denna pod uppe och körande.
+kind: Deployment
+#Namnet på deployment
+metadata:
+  name: db-review
+spec:
+  #Hur många kopior av poddarna som ska finnas.
+  replicas: 1
+  #Säger till deployment vilka poddar som tillhör den, alla som har en tag med "db-review"
+  selector:
+    matchLabels:
+      app: db-review
+  #Template berättar för deployment hur den ska skapa upp podden.
+  template:
+    #Stämplar alla underliggande poddar som skapas med denna label (db-review).
+    metadata:
+      labels:
+        app: db-review
+    spec:
+      #information om kontainern, namn och vilken image som ska köras.
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          #Skickar in nycklar från db-review-secret som agerar som .env för kubernetes.
+          envFrom:
+            - secretRef:
+                name: db-review-secret
+          #anger vilken port containern lyssnar på internt.
+          #Mer för information, spelar ingen roll vad som står där,
+          #mysql kommer ändå lyssna på 3306 oavsett vad som står nedan.
+          ports:
+            - containerPort: 3306
+          #Pekar vart datan befinner sig i db-review-storage.
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: db-review-storage
+      #Podden har access till en disk som heter db-review-storage som hämtas av pvc (där vi anger hur mycket minne vi behöver).
+      #Så exempel är detta är huset som vi har tillgång till, medans volumeMounts pekar på lägenheten där datan bor.
+      volumes:
+        - name: db-review-storage
+          persistentVolumeClaim:
+            claimName: db-review-pvc
