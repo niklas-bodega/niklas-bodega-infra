@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: user-service
-        image: niklasbodega-user-servicee:latest
+        image: niklasbodega-user-service:latest
         ports:
         - containerPort: 8084
 
