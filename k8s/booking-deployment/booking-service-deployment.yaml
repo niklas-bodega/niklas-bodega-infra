@@ -19,7 +19,7 @@ spec:
           command: ['sh', '-c', 'until nc -z mysql-service 3306; do echo waiting for mysql; sleep 2; done']
       containers:
         - name: booking
-          image: viktornikander/booking:latest
+          image: niklas-bodega-infra-booking-service:latest/booking:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8083
