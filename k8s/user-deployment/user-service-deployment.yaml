@@ -16,10 +16,14 @@ spec:
     spec:
       containers:
       - name: user-service
-        image: niklasbodega-user-service:latest
+        image: niklas-bodega-infra-user-service:latest
         imagePullPolicy: Never
+        envFrom:
+          - secretRef:
+              name: user-service-secret
         ports:
         - containerPort: 8084
+
 
 ---
 
