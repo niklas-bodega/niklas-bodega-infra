@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-service-service
+spec:
+  selector:
+    app: booking-service
+  ports:
+    - port: 8083
+      targetPort: 8083

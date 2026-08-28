@@ -17,6 +17,7 @@ spec:
       containers:
       - name: user-service
         image: niklasbodega-user-service:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 8084
 

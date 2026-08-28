@@ -13,6 +13,8 @@ lerna-debug.log*
 !.env.example
 k8s/review-db/secret.yaml
 k8s/review-service/secret.yaml
+k8s/booking-db/secret.yaml
+k8s/booking-service/secret.yaml
 
 node_modules
 dist
