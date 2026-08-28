@@ -1,0 +1,22 @@
+#secret.yaml är som våran .env fil,
+#denna är tillagd i gitignore för att den innehåller faktiska lösenord.
+#Vad jag hittat så kan inte kubernetes hoppa in och läsa av info i .env, så man får göra såhär.
+
+apiVersion: v1
+#Agerar som .env för kubernetes
+kind: Secret
+#DNS namnet så övriga objekt kan refererar till.
+metadata:
+  name: booking-service-secret
+#type: Opaque betyder att denna inte gör något vettigt
+#utan är bara en .env fil som innehåller lite strängar, har ingen funktionalitet.
+type: Opaque
+
+#Faktiska värden.
+stringData:
+  SPRING_DATASOURCE_URL: jdbc:mysql://db-booking-service:3306/booking_db?allowPublicKeyRetrieval=true&useSSL=false
+  SPRING_DATASOURCE_USERNAME: bodega_user
+  SPRING_DATASOURCE_PASSWORD: bodega_password_123
+  SPRING_JPA_HIBERNATE_DDL_AUTO: update
+  SPRING_JPA_SHOW_SQL: "false"
+  APP_JWT_SECRET: your_jwt_secret_key_change_me_in_production

@@ -16,8 +16,8 @@ spec:
         - name: booking-service
           image: niklas-bodega-infra-booking-service:latest
           imagePullPolicy: Never
-#          envFrom:
-#            - secretRef:
-#                name: booking-service-secret
+          envFrom:
+            - secretRef:
+                name: booking-service-secret
           ports:
             - containerPort: 8083
