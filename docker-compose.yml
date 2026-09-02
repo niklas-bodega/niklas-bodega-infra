@@ -84,7 +84,7 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "false"
       APP_JWT_SECRET: ${JWT_SECRET}
-      BOOKING_URL: ${BOOKING_INTERNAL_ADDRESS}
+      BOOKING_SERVICE_URL: ${BOOKING_INTERNAL_ADDRESS}
     depends_on:
       db-user:
         condition: service_healthy
@@ -107,6 +107,7 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "false"
       APP_JWT_SECRET: ${JWT_SECRET}
+      USER_SERVICE_URL: ${USER_INTERNAL_ADDRESS}
     depends_on:
       db-booking:
         condition: service_healthy
@@ -129,6 +130,7 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "false"
       APP_JWT_SECRET: ${JWT_SECRET}
+      USER_SERVICE_URL: ${USER_INTERNAL_ADDRESS}
     depends_on:
       db-review:
         condition: service_healthy
@@ -145,9 +147,9 @@ services:
     ports:
       - "80:80"
     environment:
-      API_USER_SERVICE: ${VITE_USER_API_URL}
-      API_BOOKING_SERVICE: ${VITE_BOOKING_API_URL}
-      API_REVIEW_SERVICE: ${VITE_REVIEW_API_URL}
+      VITE_USER_API_URL: ${VITE_USER_API_URL}
+      VITE_BOOKING_API_URL: ${VITE_BOOKING_API_URL}
+      VITE_REVIEW_API_URL: ${VITE_REVIEW_API_URL}
 
     depends_on:
       - user-service
