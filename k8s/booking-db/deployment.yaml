@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+#Deployment betyder att den ska ha x antal (replicas) av denna pod uppe och körande.
+kind: Deployment
+#Namnet på deployment
+metadata:
+  name: db-booking
+spec:
+  #Hur många kopior av poddarna som ska finnas.
+  replicas: 1
+  #Säger till deployment vilka poddar som tillhör den, alla som har en tag med "db-booking"
+  selector:
+    matchLabels:
+      app: db-booking
+  #Template berättar för deployment hur den ska skapa upp podden.
+  template:
+    #Stämplar alla underliggande poddar som skapas med denna label (db-booking).
+    metadata:
+      labels:
+        app: db-booking
+    spec:
+      #information om kontainern, namn och vilken image som ska köras.
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          #Skickar in nycklar från db-booking-secret som agerar som .env för kubernetes.
+          envFrom:
+            - secretRef:
+                name: db-booking-secret
+          #anger vilken port containern lyssnar på internt.
+          #Mer för information, spelar ingen roll vad som står där,
+          #mysql kommer ändå lyssna på 3306 oavsett vad som står nedan.
+          ports:
+            - containerPort: 3306
+          #Pekar vart datan befinner sig i db-booking-storage.
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: db-booking-storage
+      #Podden har access till en disk som heter db-booking-storage som hämtas av pvc (där vi anger hur mycket minne vi behöver).
+      #Så exempel är detta är huset som vi har tillgång till, medans volumeMounts pekar på lägenheten där datan bor.
+      volumes:
+        - name: db-booking-storage
+          persistentVolumeClaim:
+            claimName: db-booking-pvc

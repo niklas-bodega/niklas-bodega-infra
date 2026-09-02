@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-service
+  template:
+    metadata:
+      labels:
+        app: frontend-service
+    spec:
+      containers:
+        - name: frontend-service
+          image: niklas-bodega-infra-frontend:latest
+          imagePullPolicy: Never
+          env:
+            - name: VITE_USER_API_URL
+              value: http://localhost:30003
+            - name: VITE_BOOKING_API_URL
+              value: http://localhost:30001
+            - name: VITE_REVIEW_API_URL
+              value: http://localhost:30002
+
+          ports:
+            - containerPort: 80
