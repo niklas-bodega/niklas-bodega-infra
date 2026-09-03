@@ -145,7 +145,7 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      - "80:80"
+      - "8087:8087"
     environment:
       VITE_USER_API_URL: ${VITE_USER_API_URL}
       VITE_BOOKING_API_URL: ${VITE_BOOKING_API_URL}
