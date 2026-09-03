@@ -146,14 +146,13 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_USER_API_URL=${VITE_USER_API_URL}
+        - VITE_BOOKING_API_URL=${VITE_BOOKING_API_URL}
+        - VITE_REVIEW_API_URL=${VITE_REVIEW_API_URL}
     container_name: frontend
     ports:
       - "8087:8087"
-    environment:
-      VITE_USER_API_URL: ${VITE_USER_API_URL}
-      VITE_BOOKING_API_URL: ${VITE_BOOKING_API_URL}
-      VITE_REVIEW_API_URL: ${VITE_REVIEW_API_URL}
-
     depends_on:
       - user-service
       - booking-service
