@@ -90,6 +90,7 @@ services:
         condition: service_healthy
     networks:
       - bodega
+      - proxy-network
     restart: unless-stopped
 
   # Booking Microservice
@@ -113,6 +114,7 @@ services:
         condition: service_healthy
     networks:
       - bodega
+      - proxy-network
     restart: unless-stopped
 
   # Review Microservice
@@ -136,6 +138,7 @@ services:
         condition: service_healthy
     networks:
       - bodega
+      - proxy-network
     restart: unless-stopped
 
   # Frontend
@@ -157,6 +160,7 @@ services:
       - review-service
     networks:
       - bodega
+      - proxy-network
     restart: unless-stopped
 
 volumes:
@@ -167,3 +171,5 @@ volumes:
 networks:
   bodega:
     driver: bridge
+  proxy-network:
+    external: true
