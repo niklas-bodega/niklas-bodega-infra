@@ -22,6 +22,7 @@ services:
       start_period: 60s
     networks:
       - bodega
+      - proxy-network
 
   # Booking Service Database
   db-booking:
@@ -45,6 +46,7 @@ services:
       start_period: 60s
     networks:
       - bodega
+      - proxy-network
 
   # Review Service Database
   db-review:
@@ -68,6 +70,7 @@ services:
       start_period: 60s
     networks:
       - bodega
+      - proxy-network
 
   # User Microservice
   user-service:
