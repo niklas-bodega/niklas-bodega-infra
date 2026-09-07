@@ -1,0 +1,174 @@
+services:
+
+  # User Service Database
+  db-user:
+    image: mysql:8.0
+    container_name: db_user
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_USER_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3308:3306"
+    volumes:
+      - db_user_data:/var/lib/mysql
+      - ./init-database-user.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - bodega
+
+  # Booking Service Database
+  db-booking:
+    image: mysql:8.0
+    container_name: db_booking
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_BOOKING_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3309:3306"
+    volumes:
+      - db_booking_data:/var/lib/mysql
+      - ./init-database-booking.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - bodega
+
+  # Review Service Database
+  db-review:
+    image: mysql:8.0
+    container_name: db_review
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_REVIEW_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3310:3306"
+    volumes:
+      - db_review_data:/var/lib/mysql
+      - ./init-database-review.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - bodega
+
+  # User Microservice
+  user-service:
+    build:
+      context: ../user
+      dockerfile: Dockerfile
+    container_name: user_service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-user:3306/${DB_USER_NAME}?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+      APP_JWT_SECRET: ${JWT_SECRET}
+      BOOKING_SERVICE_URL: ${BOOKING_INTERNAL_ADDRESS}
+      GOOGLECLIENTID: ${GOOGLECLIENTID}
+      GOOGLECLIENTSECRET: ${GOOGLECLIENTSECRET}
+      GITHUBCLIENTID: ${GITHUBCLIENTID}
+      GITHUBCLIENTSECRET: ${GITHUBCLIENTSECRET}
+
+    depends_on:
+      db-user:
+        condition: service_healthy
+    networks:
+      - bodega
+    restart: unless-stopped
+
+  # Booking Microservice
+  booking-service:
+    build:
+      context: ../booking
+      dockerfile: Dockerfile
+    container_name: booking_service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-booking:3306/${DB_BOOKING_NAME}?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+      APP_JWT_SECRET: ${JWT_SECRET}
+      USER_SERVICE_URL: ${USER_INTERNAL_ADDRESS}
+    depends_on:
+      db-booking:
+        condition: service_healthy
+    networks:
+      - bodega
+
+    restart: unless-stopped
+
+  # Review Microservice
+  review-service:
+    build:
+      context: ../review-service
+      dockerfile: Dockerfile
+    container_name: review_service
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-review:3306/${DB_REVIEW_NAME}?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+      APP_JWT_SECRET: ${JWT_SECRET}
+      USER_SERVICE_URL: ${USER_INTERNAL_ADDRESS}
+    depends_on:
+      db-review:
+        condition: service_healthy
+    networks:
+      - bodega
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_USER_API_URL=${VITE_USER_API_URL}
+        - VITE_BOOKING_API_URL=${VITE_BOOKING_API_URL}
+        - VITE_REVIEW_API_URL=${VITE_REVIEW_API_URL}
+    container_name: frontend
+    ports:
+      - "8087:8087"
+    depends_on:
+      - user-service
+      - booking-service
+      - review-service
+    networks:
+      - bodega
+    restart: unless-stopped
+
+volumes:
+  db_user_data:
+  db_booking_data:
+  db_review_data:
+
+networks:
+  bodega:
+    driver: bridge
