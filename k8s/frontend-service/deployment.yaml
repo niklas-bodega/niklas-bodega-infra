@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend-service
-          image: niklas-bodega-infra-frontend:latest
+          image: niklas-bodega-infra-frontend:k8s
           imagePullPolicy: Never
 
           ports:
