@@ -24,7 +24,6 @@ spec:
         ports:
         - containerPort: 8084
 
-
 ---
 
 apiVersion: v1
